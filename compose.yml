@@ -1,0 +1,88 @@
+services:
+  # NAT64 service
+  plat:
+    #build: plat-jool
+    build: plat-vpp
+    privileged: true
+    networks:
+      - plat-v4
+      - plat-v6
+  # FF gateway
+  gateway:
+    build: gateway
+    privileged: true
+    networks:
+      - v6-uplink
+      - v4-uplink
+      - tunnel
+      - plat-v4
+      - plat-v6
+  # Represents the public v4 internet
+  v4-internet:
+    build: v4-internet
+    privileged: true
+    networks:
+      - v4-uplink
+  # Represents the public v6 internet
+  v6-internet:
+    build: v6-internet
+    privileged: true
+    networks:
+      - v6-uplink
+  # A FF router
+  router:
+    #build: router-jool
+    build: router-nat46
+    privileged: true
+    networks:
+      - tunnel
+      - client-lan
+  # A FF client
+  client:
+    build: client
+    privileged: true
+    networks:
+      - client-lan
+networks:
+  client-lan:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-client-lan
+      com.docker.network.bridge.gateway_mode_ipv4: routed
+      com.docker.network.bridge.gateway_mode_ipv6: routed
+      com.docker.network.container_iface_prefix: lan
+  tunnel:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-tunnel
+      com.docker.network.bridge.gateway_mode_ipv4: routed
+      com.docker.network.bridge.gateway_mode_ipv6: routed
+      com.docker.network.container_iface_prefix: tunnel
+  v4-uplink:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-v4-uplink
+      com.docker.network.bridge.gateway_mode_ipv4: routed
+      com.docker.network.bridge.gateway_mode_ipv6: routed
+      com.docker.network.container_iface_prefix: v4-
+  v6-uplink:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-v6-uplink
+      com.docker.network.bridge.gateway_mode_ipv4: routed
+      com.docker.network.bridge.gateway_mode_ipv6: routed
+      com.docker.network.container_iface_prefix: v6-
+  plat-v4:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-plat-v4
+      com.docker.network.bridge.gateway_mode_ipv4: routed
+      com.docker.network.bridge.gateway_mode_ipv6: routed
+      com.docker.network.container_iface_prefix: plat-v4-
+  plat-v6:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-plat-v6
+      com.docker.network.bridge.gateway_mode_ipv4: routed
+      com.docker.network.bridge.gateway_mode_ipv6: routed
+      com.docker.network.container_iface_prefix: plat-v6-
